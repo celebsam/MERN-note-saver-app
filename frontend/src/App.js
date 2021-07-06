@@ -1,10 +1,17 @@
 import "./App.css";
+import Hearder from "./components/Header/Header";
+import Footer from "./components/Footer/Footer";
+import LandingPage from "./Screens/LandingPage/LandingPage";
 
 function App() {
    return (
-      <div className="App">
-         <h2>Welcome to note saver</h2>
-      </div>
+      <>
+         <Hearder />
+         <main>
+            <LandingPage />
+         </main>
+         <Footer />
+      </>
    );
 }
 
