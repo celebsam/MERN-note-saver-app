@@ -3,6 +3,7 @@ import MainScreen from "../../components/MainScreen";
 import { Link } from "react-router-dom";
 import { Button, Card, Badge, Accordion } from "react-bootstrap";
 import axios from "axios";
+import { Helmet } from "react-helmet";
 
 const MyNotes = () => {
    const [notes, setNotes] = useState([]);
@@ -15,7 +16,6 @@ const MyNotes = () => {
       axios
          .get("/api/notes")
          .then((response) => {
-            console.log(response);
             setNotes(response.data);
          })
          .catch((error) => {
@@ -24,6 +24,14 @@ const MyNotes = () => {
    }, []);
    return (
       <MainScreen title="My Notes">
+         <Helmet>
+            {" "}
+            <title>My Notes</title>
+            <meta
+               name="description"
+               content="A safe place for all your notes"
+            />
+         </Helmet>
          <Link to="/createnote">
             <Button size="lg" style={{ marginBottom: "6px" }}>
                Create New Note
