@@ -9,12 +9,16 @@ import {
 } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom";
 import { logout } from "../../redux/actions/userActions";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-const Header = () => {
+const Header = ({ setSearch }) => {
    const dispatch = useDispatch();
-   const data = JSON.stringify(localStorage.getItem("userInfo"));
-   console.log(data.name);
+   // const data = JSON.stringify(localStorage.getItem("userInfo"));
+   // console.log(data.name);
+   const userLogin = useSelector((state) => state.userLogin);
+
+   const { userInfo } = userLogin;
+
    const history = useHistory();
    return (
       <Navbar bg="primary" expand="lg" variant="dark">
@@ -30,6 +34,7 @@ const Header = () => {
                         type="text"
                         placeholder="Search"
                         className="mr-sm-2"
+                        onChange={(e) => setSearch(e.target.value)}
                      />
                   </Form>
                </Nav>
@@ -37,7 +42,7 @@ const Header = () => {
                   <Nav.Link>
                      <Link to="/mynotes">My Notes</Link>
                   </Nav.Link>
-                  <NavDropdown title={data?.name} id="basic-nav-dropdown">
+                  <NavDropdown title={userInfo?.name} id="basic-nav-dropdown">
                      <NavDropdown.Item href="#action/3.1">
                         My Profile
                      </NavDropdown.Item>

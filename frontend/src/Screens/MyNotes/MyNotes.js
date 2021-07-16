@@ -1,27 +1,55 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import MainScreen from "../../components/MainScreen";
-import { Link } from "react-router-dom";
-import { Button, Card, Badge, Accordion } from "react-bootstrap";
-import axios from "axios";
+import { Link, useHistory } from "react-router-dom";
+import {
+   Button,
+   Card,
+   Badge,
+   Accordion,
+   Spinner,
+   Alert,
+} from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
 import { Helmet } from "react-helmet";
+import { listNotes, noteDeleteAction } from "../../redux/actions/notesAction";
 
-const MyNotes = () => {
-   const [notes, setNotes] = useState([]);
+const MyNotes = ({ search }) => {
+   const history = useHistory();
+   const dispatch = useDispatch();
    const deleteHandler = (id) => {
       if (window.confirm("Are you sure?")) {
+         dispatch(noteDeleteAction(id));
       }
    };
 
+   const noteList = useSelector((state) => state.noteList);
+
+   const noteDelete = useSelector((state) => state.noteDelete);
+
+   const {
+      loading: deleteLoading,
+      error: deleteError,
+      success: deleteSuccess,
+   } = noteDelete;
+
+   const { error, loading, notes } = noteList;
+
+   const userLogin = useSelector((state) => state.userLogin);
+
+   const { userInfo } = userLogin;
+
+   const noteUpdate = useSelector((state) => state.noteUpdate);
+   const { success } = noteUpdate;
+
+   const noteCreate = useSelector((state) => state.noteCreate);
+   const { success: createSuccess } = noteCreate;
+
    useEffect(() => {
-      axios
-         .get("/api/notes")
-         .then((response) => {
-            setNotes(response.data);
-         })
-         .catch((error) => {
-            console.log(error);
-         });
-   }, []);
+      dispatch(listNotes());
+      if (!userInfo) {
+         history.pushState("/");
+      }
+   }, [dispatch, history, userInfo, success, deleteSuccess, createSuccess]);
    return (
       <MainScreen title="My Notes">
          <Helmet>
@@ -32,63 +60,89 @@ const MyNotes = () => {
                content="A safe place for all your notes"
             />
          </Helmet>
+         {error && (
+            <Alert variant="danger">
+               <strong>{error}</strong>
+            </Alert>
+         )}
          <Link to="/createnote">
             <Button size="lg" style={{ marginBottom: "6px" }}>
                Create New Note
             </Button>
          </Link>
-         {notes.map((note) => (
-            <Accordion key={note._id}>
-               <Card style={{ marginTop: "20px" }}>
-                  <Card.Header style={{ display: "flex" }}>
-                     <span
-                        style={{
-                           fontSize: "1.5rem",
-                           flex: 1,
-                           align: "center",
-                           cursor: "pointer",
-                        }}
-                     >
-                        <Accordion.Toggle
-                           as={Card.Text}
-                           variant="link"
-                           eventKey="0"
+         {loading && (
+            <div
+               style={{
+                  width: "100%",
+                  minWidth: "50px",
+                  display: "grid",
+                  maxHeight: "56px",
+                  placeItems: "center",
+                  marginTop: "4rem",
+               }}
+            >
+               <Spinner animation="border" role="status"></Spinner>
+            </div>
+         )}
+         {notes
+            ?.filter((filtered) =>
+               filtered.title.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((note) => (
+               <Accordion key={note._id}>
+                  <Card style={{ marginTop: "20px" }}>
+                     <Card.Header style={{ display: "flex" }}>
+                        <span
+                           style={{
+                              fontSize: "1.5rem",
+                              flex: 1,
+                              align: "center",
+                              cursor: "pointer",
+                           }}
                         >
-                           {note.title}
-                        </Accordion.Toggle>
-                     </span>
-                     <div>
-                        <Button href={`/note/${note._id}`} variant="info">
-                           Edit
-                        </Button>
-                        <Button
-                           onClick={() => deleteHandler(note._id)}
-                           className="mx-3"
-                           variant="danger"
-                        >
-                           Delete
-                        </Button>
-                     </div>
-                  </Card.Header>
-                  <Accordion.Collapse eventKey="0">
-                     <Card.Body>
-                        <h4>
-                           <Badge variant="primary">
-                              Category - {note.category}
-                           </Badge>
-                        </h4>
-                        <blockquote className="blockquote mb-0">
-                           <p>{note.content}</p>
-                           <footer className="blockquote-footer">
-                              {note.category}
-                              {/* <cite title="Source Title">Source Title</cite> */}
-                           </footer>
-                        </blockquote>
-                     </Card.Body>
-                  </Accordion.Collapse>
-               </Card>
-            </Accordion>
-         ))}
+                           <Accordion.Toggle
+                              as={Card.Text}
+                              variant="link"
+                              eventKey="0"
+                           >
+                              {note.title}
+                           </Accordion.Toggle>
+                        </span>
+                        <div>
+                           <Button href={`/note/${note._id}`} variant="info">
+                              Edit
+                           </Button>
+                           <Button
+                              onClick={() => deleteHandler(note._id)}
+                              className="mx-3"
+                              variant="danger"
+                           >
+                              Delete
+                           </Button>
+                        </div>
+                     </Card.Header>
+                     <Accordion.Collapse eventKey="0">
+                        <Card.Body>
+                           <h4>
+                              <Badge variant="primary">
+                                 Category - {note.category}
+                              </Badge>
+                           </h4>
+                           <blockquote className="blockquote mb-0">
+                              <p>{note.content}</p>
+                              <footer className="blockquote-footer">
+                                 Created on
+                                 <cite title="Source Title">
+                                    {" "}
+                                    {note.createdAt.substring(0, 10)}
+                                 </cite>
+                              </footer>
+                           </blockquote>
+                        </Card.Body>
+                     </Accordion.Collapse>
+                  </Card>
+               </Accordion>
+            ))}
       </MainScreen>
    );
 };
